@@ -1,0 +1,1 @@
+go run main.go #FFFFFF #FFFFFF #FFFFFF #FFFFFF #FFFFFF #FFFFFF 0 0 0 0 0
