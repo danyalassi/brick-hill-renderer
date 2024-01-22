@@ -1,0 +1,31 @@
+linters-settings:
+  govet:
+    enabled: true
+  golint:
+    enabled: true
+  staticcheck:
+    enabled: true
+  structcheck:
+    enabled: true
+  unused:
+    enabled: true
+  gocyclo:
+    enabled: true
+    max-complexity: 10
+  misspell:
+    enabled: true
+  unconvert:
+    enabled: true
+  gofmt:
+    enabled: true
+    simplify: true
+
+linters:
+  enable-all: true
+  disable: ["errcheck"]
+
+lint:
+  issues-exit-code: 1
+  run:
+    deadline: 5m
+    tests: true
