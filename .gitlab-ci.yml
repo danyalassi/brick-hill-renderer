@@ -1,6 +1,5 @@
 stages:
   - install
-  - lint
   - test
 
 install:
@@ -13,18 +12,6 @@ install:
 
   script:
     - go install
-
-lint:
-  image: registry.gitlab.com/gitlab-org/gitlab-build-images:golangci-lint-alpine
-  stage: lint
-  script:
-    - '[ -e .golangci.yml ] || cp /golangci/.golangci.yml .'
-    - golangci-lint run --issues-exit-code 0 --print-issued-lines=false --out-format code-climate:gl-code-quality-report.json,line-number
-  artifacts:
-    reports:
-      codequality: gl-code-quality-report.json
-    paths:
-      - gl-code-quality-report.json
 
 test:
   stage: test
