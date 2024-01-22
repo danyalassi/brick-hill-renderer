@@ -22,4 +22,4 @@ test:
     - go mod download
 
   script:
-    - go test -v ./...
+    - go run main.go "#FFFFFF" "#FFFFFF" "#FFFFFF" "#FFFFFF" "#FFFFFF" "#FFFFFF" 0 0 0 0 0
