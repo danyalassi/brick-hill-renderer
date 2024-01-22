@@ -1,6 +1,7 @@
-# FauxGL Serverless Renderer for Oracle Cloud Infrastucture
+# FauxGL OCI Serverless Renderer 
 
 ## Todo:
-- [ ] Replace Vanilla FauxGL with the favor of BrickGL
+- [ ] Add CI testing and linting
+- [ ] Replace vanilla FauxGL with the favor of BrickGL
 - [ ] Bundle it into one file
 - [ ] Replace launch.bat with OCI serverless
