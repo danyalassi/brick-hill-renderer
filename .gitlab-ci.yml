@@ -1,5 +1,6 @@
 stages:
   - install
+  - lint
   - test
 
 install:
@@ -12,6 +13,16 @@ install:
 
   script:
     - go install
+
+lint:
+  stage: lint
+  image: golangci/golangci-lint:latest
+
+  before_script:
+    - golangci-lint version
+
+  script:
+    - golangci-lint run ./...
 
 test:
   stage: test
