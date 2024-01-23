@@ -101,14 +101,11 @@ func main() {
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
 	if faceid == "0" {
-        /*
 		facetexture, err := LoadTexture("face.png")
 		if err != nil {
 			panic(err)
 		}
 		shader.Texture = facetexture
-        */
-
 	}else{
 		facetexture, err := LoadTexture("/var/www/html/itemcache/"+faceid+".png")
 		if err != nil {
