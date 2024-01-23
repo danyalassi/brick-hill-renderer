@@ -23,3 +23,8 @@ test:
 
   script:
     - go run main.go "#FFFFFF" "#FFFFFF" "#FFFFFF" "#FFFFFF" "#FFFFFF" "#FFFFFF" 0 0 0 0 0
+    - mv goout.png $CI_PROJECT_DIR/goout.png
+
+  artifacts:
+    paths:
+      - goout.png
