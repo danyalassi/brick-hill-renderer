@@ -1,8 +1,8 @@
 stages:
   - test
 
-install:
-  stage: install
+test:
+  stage: test
   image: golang:latest
 
   before_script:
