@@ -1,4 +1,4 @@
-# FauxGL OCI Serverless Renderer 
+# FauxGL OCI FaaS Renderer 
 
 ## Todo:
 - [x] Add CI testing and linting
