@@ -1,6 +1,5 @@
 stages:
   - test
-  - deploy
 
 test:
   stage: test
@@ -11,10 +10,3 @@ test:
 
   script:
     - go run main.go "#FFFFFF" "#FFFFFF" "#FFFFFF" "#FFFFFF" "#FFFFFF" "#FFFFFF" 0 0 0 0 0
-
-deploy:
-  stage: deploy
-  image: curlimages/curl:latest
-
-  script:
-    - 'curl -X POST -F "image=@goout.png" -F "key=$TOKEN" https://renderer-mirrorer.vercel.app/post'
