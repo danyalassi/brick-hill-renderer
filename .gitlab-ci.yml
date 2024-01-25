@@ -13,4 +13,4 @@ test:
 
   artifacts:
     paths:
-      - mycv.pdf
+      - goout.png
