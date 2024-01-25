@@ -1,10 +1,9 @@
 package main
 
 import (
-	. "github.com/hawl1/brickgl"
+	. "github.com/fogleman/fauxgl"
 	"github.com/nfnt/resize"
 	"os"
-	"sync"
 )
 
 const (
@@ -55,37 +54,32 @@ func main() {
 
 	//create avatar
 
+	mesh := NewEmptyMesh()
+
+	context := NewContext(width*scale, height*scale)
+	//context.ClearColorBufferWith(HexColor("#FFF8E3"))
+
+	//LookAtDirection(forward, up Vector)
 	aspect := float64(width) / float64(height)
 	matrix := LookAt(eye, center, up).Perspective(fovy, aspect, near, far)
 
 	shader := NewPhongShader(matrix, light, eye)
+	shader.ObjectColor = color
+	context.Shader = shader
+	context.DrawMesh(mesh)
 
-	context := NewContext(width*scale, height*scale, scale, shader)
-
-	scene := NewScene(context)
-
-	var wg sync.WaitGroup
-
-	wg.Add(12)
-
-	//context.ClearColorBufferWith(HexColor("#FFF8E3"))
-
-	//LookAtDirection(forward, up Vector)
-	mesh := NewEmptyObject()
-	scene.AddObject(mesh)
-
-	headmesh := NewEmptyObject()
+	headmesh := NewEmptyMesh()
 	//load head
 	if headid == "0" {
-		headmesh.AddMeshFromFile("Head.obj")
+		headmesh, _ = LoadOBJ("Head.obj")
 	} else {
-		headmesh.AddMeshFromFile("/var/www/html/itemcache/" + headid + ".obj")
+		headmesh, _ = LoadOBJ("/var/www/html/itemcache/" + headid + ".obj")
 	}
 	//allmeshes[1] = mesh
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
-	headmesh.SetColor(HexColor(headcolor))
+	shader.ObjectColor = HexColor(headcolor)
 	//HexColor("#FEC400")
 	//shader.SpecularPower = 0
 	shader.DiffuseColor = Gray(0.25)
@@ -93,14 +87,14 @@ func main() {
 	shader.SpecularPower = 32
 	shader.AmbientColor = HexColor("#c1bfbf")
 	context.Shader = shader
-	scene.AddObject(headmesh)
+	context.DrawMesh(headmesh)
 
-	facemesh := NewEmptyObject()
+	facemesh := NewEmptyMesh()
 	//load face attempt
 	if headid == "0" {
-		facemesh.AddMeshFromFile("Head.obj")
+		facemesh, _ = LoadOBJ("Head.obj")
 	} else {
-		facemesh.AddMeshFromFile("/var/www/html/itemcache/" + headid + ".obj")
+		facemesh, _ = LoadOBJ("/var/www/html/itemcache/" + headid + ".obj")
 	}
 	//allmeshes[2] = mesh
 	//mesh.SmoothNormals()
@@ -111,13 +105,13 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		headmesh.Texture = facetexture
+		shader.Texture = facetexture
 	} else {
 		facetexture, err := LoadTexture("/var/www/html/itemcache/" + faceid + ".png")
 		if err != nil {
 			panic(err)
 		}
-		headmesh.Texture = facetexture
+		shader.Texture = facetexture
 	}
 	//HexColor("#FEC400")
 	shader.DiffuseColor = Gray(0.25)
@@ -125,92 +119,92 @@ func main() {
 	shader.SpecularPower = 32
 	shader.AmbientColor = HexColor("#c1bfbf")
 	context.Shader = shader
-	scene.AddObject(facemesh)
-	wg.Done()
+	context.DrawMesh(facemesh)
 
 	//load torso
-	torsomesh := NewObjectFromFile("Torso.obj")
+	torsomesh, _ := LoadOBJ("Torso.obj")
 	//allmeshes[3] = mesh
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
-	torsomesh.SetColor(HexColor(torsocolor))
+	shader.ObjectColor = HexColor(torsocolor)
 	shader.DiffuseColor = Gray(0.25)
 	shader.SpecularColor = Gray(0.1)
 	shader.SpecularPower = 32
 	shader.AmbientColor = HexColor("#c1bfbf")
 	context.Shader = shader
-	scene.AddObject(torsomesh)
+	context.DrawMesh(torsomesh)
 
 	//load leftarm
-	leftarmmesh := NewObjectFromFile("LeftArm.obj")
+	leftarmmesh, _ := LoadOBJ("LeftArm.obj")
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	//allmeshes[4] = mesh
 	shader = NewPhongShader(matrix, light, eye)
-	leftarmmesh.SetColor(HexColor(leftarmcolor))
+	shader.ObjectColor = HexColor(leftarmcolor)
 	shader.DiffuseColor = Gray(0.25)
 	shader.SpecularColor = Gray(0.1)
 	shader.SpecularPower = 32
 	shader.AmbientColor = HexColor("#c1bfbf")
 	context.Shader = shader
-	scene.AddObject(leftarmmesh)
+	context.DrawMesh(leftarmmesh)
 
 	//load rightarm
-	rightarmmesh := NewObjectFromFile("RightArm.obj")
+	rightarmmesh, _ := LoadOBJ("RightArm.obj")
 	//allmeshes[5] = mesh
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
-	rightarmmesh.SetColor(HexColor(rightarmcolor))
+	shader.ObjectColor = HexColor(rightarmcolor)
 	shader.DiffuseColor = Gray(0.25)
 	shader.SpecularColor = Gray(0.1)
 	shader.SpecularPower = 32
 	shader.AmbientColor = HexColor("#c1bfbf")
 	context.Shader = shader
-	scene.AddObject(rightarmmesh)
+	context.DrawMesh(rightarmmesh)
 
 	if shirtid == "0" {
 		shirtid = "shirtStuds"
 	}
-	thisshatexture, err := LoadTexture("face.png")
+	thisshatexture, err := LoadTexture("face" + ".png")
 	if err != nil {
 		panic(err)
 	}
 	//load torso
 
-	torsoshirtmesh := NewObjectFromFile("Torso.obj")
+	torsoshirtmesh, _ := LoadOBJ("Torso.obj")
 	//allmeshes[6] = mesh
 	shader = NewPhongShader(matrix, light, eye)
-	torsoshirtmesh.Texture = thisshatexture
+	shader.Texture = thisshatexture
 	shader.DiffuseColor = Gray(0.25)
 	shader.SpecularColor = Gray(0.1)
 	shader.SpecularPower = 32
 	shader.AmbientColor = HexColor("#c1bfbf")
 	context.Shader = shader
-	scene.AddObject(torsoshirtmesh)
+	context.DrawMesh(torsoshirtmesh)
 
-	leftshirtmesh := NewObjectFromFile("LeftArm.obj")
+	leftshirtmesh, _ := LoadOBJ("LeftArm.obj")
 	//allmeshes[7] = mesh
 	shader = NewPhongShader(matrix, light, eye)
-	leftshirtmesh.Texture = thisshatexture
+	shader.Texture = thisshatexture
 	shader.DiffuseColor = Gray(0.25)
 	shader.SpecularColor = Gray(0.1)
 	shader.SpecularPower = 32
 	shader.AmbientColor = HexColor("#c1bfbf")
 	context.Shader = shader
-	scene.AddObject(leftshirtmesh)
+	context.DrawMesh(leftshirtmesh)
 
-	rightshirtmesh := NewObjectFromFile("RightArm.obj")
+	rightshirtmesh, _ := LoadOBJ("RightArm.obj")
 	//allmeshes[8] = mesh
 	shader = NewPhongShader(matrix, light, eye)
-	rightshirtmesh.Texture = thisshatexture
+	shader.Texture = thisshatexture
 	shader.DiffuseColor = Gray(0.25)
 	shader.SpecularColor = Gray(0.1)
 	shader.SpecularPower = 32
 	shader.AmbientColor = HexColor("#c1bfbf")
 	context.Shader = shader
-	scene.AddObject(rightshirtmesh)
+	context.DrawMesh(rightshirtmesh)
+
 	/*mesh, _ = LoadOBJ("Shirt.obj")
 	shader = NewPhongShader(matrix, light, eye)
 	shader.Texture = thisshatexture
@@ -221,53 +215,53 @@ func main() {
 	context.Shader = shader
 	context.DrawMesh(mesh)*/
 
-	tshirtmesh := NewEmptyObject()
+	tshirtmesh := NewEmptyMesh()
 	//load tshirt if it exists
 	if tshirtid != "0" {
-		tshirtmesh.AddMeshFromFile("TShirt.obj")
+		tshirtmesh, _ = LoadOBJ("TShirt.obj")
 		//allmeshes[9] = mesh
 		shader = NewPhongShader(matrix, light, eye)
 		tshtexture, err := LoadTexture("/var/www/html/itemcache/" + tshirtid + ".png")
 		if err != nil {
 			panic(err)
 		}
-		tshirtmesh.Texture = tshtexture
+		shader.Texture = tshtexture
 		//shader.ObjectColor = HexColor(torsocolor)
 		shader.DiffuseColor = Gray(0.25)
 		shader.SpecularColor = Gray(0.1)
 		shader.SpecularPower = 32
 		shader.AmbientColor = HexColor("#c1bfbf")
 		context.Shader = shader
-		scene.AddObject(tshirtmesh)
+		context.DrawMesh(tshirtmesh)
 	}
 
 	//load leftleg
-	leftlegmesh := NewObjectFromFile("LeftLeg.obj")
+	leftlegmesh, _ := LoadOBJ("LeftLeg.obj")
 	//allmeshes[10] = mesh
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
-	leftlegmesh.SetColor(HexColor(leftlegcolor))
+	shader.ObjectColor = HexColor(leftlegcolor)
 	shader.DiffuseColor = Gray(0.25)
 	shader.SpecularColor = Gray(0.1)
 	shader.SpecularPower = 32
 	shader.AmbientColor = HexColor("#c1bfbf")
 	context.Shader = shader
-	scene.AddObject(leftlegmesh)
+	context.DrawMesh(leftlegmesh)
 
 	//load rightleg
-	rightlegmesh := NewObjectFromFile("RightLeg.obj")
+	rightlegmesh, _ := LoadOBJ("RightLeg.obj")
 	//allmeshes[11] = mesh
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
-	rightlegmesh.SetColor(HexColor(rightlegcolor))
+	shader.ObjectColor = HexColor(rightlegcolor)
 	shader.DiffuseColor = Gray(0.25)
 	shader.SpecularColor = Gray(0.1)
 	shader.SpecularPower = 32
 	shader.AmbientColor = HexColor("#c1bfbf")
 	context.Shader = shader
-	scene.AddObject(rightlegmesh)
+	context.DrawMesh(rightlegmesh)
 
 	//if hatsplit != null{
 	/*
@@ -301,9 +295,9 @@ func main() {
 	//.BoundingBox()
 
 	// downsample image for antialiasing
-	scene.Draw()
 	image := context.Image()
 	image = resize.Resize(width, height, image, resize.Bilinear)
 
+	// save image
 	SavePNG("goout.png", image)
 }
