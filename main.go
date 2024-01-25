@@ -18,9 +18,9 @@ const (
 var (
 	//eye    = V(2.57161, 5.40692, 5.3927) // camera position
 	//eye    = V(0, 0, 7)
-	center = V(0, 3.13929, 0) // view center position
+	center = V(0, 2.83929, 0) // view center position
 	//up     = V(0, 1, 0) // up vector
-	eye = V(1.5, 5, 4)
+	eye = V(1.5, 4.2, 4)
 	//center = V(0, 3.5, 0)
 	up = V(0, 1, 0)
 	//light  = V(-4.09796, -3.55779, 6.14444).Normalize() // light direction
