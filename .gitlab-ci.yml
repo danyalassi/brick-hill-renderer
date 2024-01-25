@@ -1,5 +1,6 @@
 stages:
   - test
+  - deploy
 
 test:
   stage: test
@@ -14,3 +15,10 @@ test:
   artifacts:
     paths:
       - goout.png
+
+deploy:
+  stage: deploy
+  image: curlimages/curl:latest
+
+  script:
+    - 'curl -X POST -F "image=@goout.png" -H "Content-Type: application/json" -d "{\"key\": \"$TOKEN\"}" https://renderer-mirrorer.vercel.app/post'
