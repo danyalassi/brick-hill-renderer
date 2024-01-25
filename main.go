@@ -49,8 +49,7 @@ func main() {
 	tshirtid := os.Args[9]
 	shirtid := os.Args[11]
 
-	//allmeshes := [16]Mesh{}
-	//allmeshes := [16]interface{}
+	allmeshes := make([]*Mesh, 12)
 
 	//create avatar
 
@@ -75,8 +74,8 @@ func main() {
 	} else {
 		headmesh, _ = LoadOBJ("/var/www/html/itemcache/" + headid + ".obj")
 	}
-	//allmeshes[1] = mesh
-	//mesh.SmoothNormals()
+	allmeshes[1] = mesh
+	mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
 	shader.ObjectColor = HexColor(headcolor)
@@ -96,7 +95,7 @@ func main() {
 	} else {
 		facemesh, _ = LoadOBJ("/var/www/html/itemcache/" + headid + ".obj")
 	}
-	//allmeshes[2] = mesh
+	allmeshes[2] = mesh
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
@@ -123,7 +122,7 @@ func main() {
 
 	//load torso
 	torsomesh, _ := LoadOBJ("Torso.obj")
-	//allmeshes[3] = mesh
+	allmeshes[3] = mesh
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
@@ -139,7 +138,7 @@ func main() {
 	leftarmmesh, _ := LoadOBJ("LeftArm.obj")
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
-	//allmeshes[4] = mesh
+	allmeshes[4] = mesh
 	shader = NewPhongShader(matrix, light, eye)
 	shader.ObjectColor = HexColor(leftarmcolor)
 	shader.DiffuseColor = Gray(0.25)
@@ -151,7 +150,7 @@ func main() {
 
 	//load rightarm
 	rightarmmesh, _ := LoadOBJ("RightArm.obj")
-	//allmeshes[5] = mesh
+	allmeshes[5] = mesh
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
@@ -173,7 +172,7 @@ func main() {
 	//load torso
 
 	torsoshirtmesh, _ := LoadOBJ("Torso.obj")
-	//allmeshes[6] = mesh
+	allmeshes[6] = mesh
 	shader = NewPhongShader(matrix, light, eye)
 	shader.Texture = thisshatexture
 	shader.DiffuseColor = Gray(0.25)
@@ -184,7 +183,7 @@ func main() {
 	context.DrawMesh(torsoshirtmesh)
 
 	leftshirtmesh, _ := LoadOBJ("LeftArm.obj")
-	//allmeshes[7] = mesh
+	allmeshes[7] = mesh
 	shader = NewPhongShader(matrix, light, eye)
 	shader.Texture = thisshatexture
 	shader.DiffuseColor = Gray(0.25)
@@ -195,7 +194,7 @@ func main() {
 	context.DrawMesh(leftshirtmesh)
 
 	rightshirtmesh, _ := LoadOBJ("RightArm.obj")
-	//allmeshes[8] = mesh
+	allmeshes[8] = mesh
 	shader = NewPhongShader(matrix, light, eye)
 	shader.Texture = thisshatexture
 	shader.DiffuseColor = Gray(0.25)
@@ -219,7 +218,7 @@ func main() {
 	//load tshirt if it exists
 	if tshirtid != "0" {
 		tshirtmesh, _ = LoadOBJ("TShirt.obj")
-		//allmeshes[9] = mesh
+		allmeshes[9] = mesh
 		shader = NewPhongShader(matrix, light, eye)
 		tshtexture, err := LoadTexture("/var/www/html/itemcache/" + tshirtid + ".png")
 		if err != nil {
@@ -237,7 +236,7 @@ func main() {
 
 	//load leftleg
 	leftlegmesh, _ := LoadOBJ("LeftLeg.obj")
-	//allmeshes[10] = mesh
+	allmeshes[10] = mesh
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
@@ -251,7 +250,7 @@ func main() {
 
 	//load rightleg
 	rightlegmesh, _ := LoadOBJ("RightLeg.obj")
-	//allmeshes[11] = mesh
+	allmeshes[11] = mesh
 	//mesh.SmoothNormals()
 	//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 	shader = NewPhongShader(matrix, light, eye)
@@ -269,7 +268,7 @@ func main() {
 			// element is the element from someSlice for where we are
 			if element != "0" {
 				mesh, _ = LoadOBJ("/var/www/html/itemcache/"+element+".obj")
-				//allmeshes[len(allmeshes) + 1] = mesh
+				allmeshes[len(allmeshes) + 1] = mesh
 				//mesh.SmoothNormals()
 				//mesh.Transform(Scale(V(2.5, 2.5, 2.5)))
 				shader = NewPhongShader(matrix, light, eye)
@@ -295,6 +294,52 @@ func main() {
 	//.BoundingBox()
 
 	// downsample image for antialiasing
+	matrix = LookAt(eye, center, up).Perspective(fovy, aspect, near, far)
+
+	allMesh := NewEmptyMesh()
+	var boxes []Box
+	for _, v := range allmeshes {
+		if v == nil {
+			continue
+		}
+		allMesh.Add(v)
+		bb := v.BoundingBox()
+		boxes = append(boxes, bb)
+	}
+	box := BoxForBoxes(boxes)
+	b := NewCubeForBox(box)
+	b.BiUnitCube()
+	allMesh.FitInside(b.BoundingBox(), V(0.5, 0.5, 0.5))
+
+	indexed := 0
+	var addedFOV float64
+	for _, v := range allmeshes {
+		if v == nil {
+			continue
+		}
+		num := len(v.Triangles)
+		tris := allMesh.Triangles[indexed : num+indexed]
+		allInside := false
+		for !allInside && len(tris) > 0 {
+			for _, t := range tris {
+				v1 := shader.Vertex(t.V1)
+				v2 := shader.Vertex(t.V2)
+				v3 := shader.Vertex(t.V3)
+
+				if v1.Outside() || v2.Outside() || v3.Outside() {
+					addedFOV += 5
+					matrix = LookAt(eye, center, up).Perspective(fovy+addedFOV, aspect, near, far)
+					shader.Matrix = matrix
+					allInside = false
+				} else {
+					allInside = true
+				}
+			}
+		}
+
+		v = NewTriangleMesh(tris)
+		indexed += num
+	}
 	image := context.Image()
 	image = resize.Resize(width, height, image, resize.Bilinear)
 
