@@ -8,9 +8,9 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/aws/aws-lambda-go/lambda"
+	fdk "github.com/fnproject/fdk-go"
 	"github.com/gofrs/uuid"
-	"github.com/hawl1/brickgl"
+	fauxgl "github.com/hawl1/brickgl"
 )
 
 const (
@@ -29,28 +29,21 @@ var (
 	def = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":0,\"pants\":0,\"shirt\":0,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
 )
 
-// RenderEvent input data to lambda to return an ImageResponse
+func main() {
+	fdk.Handle(fdk.HandlerFunc(HandleRenderEvent))
+}
+
 type RenderEvent struct {
 	AvatarJSON string
 	Size       int
 }
 
-// ImageResponse lambda response for a base64 encoded render
 type ImageResponse struct {
 	UUID  string
 	Image string
 }
 
-func main() {
-	lambda.Start(HandleRenderEvent)
-	/*fmt.Println(HandleRenderEvent(RenderEvent{
-		AvatarJSON: "",
-		Size:       512,
-	}))*/
-}
-
-// HandleRenderEvent function to process the rendering
-func HandleRenderEvent(e RenderEvent) (resp ImageResponse, err error) {
+func HandleRenderEvent(resp ImageResponse, err error) {
 	if e.AvatarJSON == "" {
 		e.AvatarJSON = def
 	}

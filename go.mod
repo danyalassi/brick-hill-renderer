@@ -4,6 +4,7 @@ go 1.21.6
 
 require (
 	github.com/aws/aws-lambda-go v1.45.0
+	github.com/fnproject/fdk-go v0.0.39
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/hawl1/brickgl v0.0.0-20240122061428-3554bc992e2a
 )
