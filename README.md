@@ -1,7 +1,8 @@
 # FauxGL OCI FaaS Renderer 
 
+we replaced the entire renderer with brick hill's, so more to do :sob:
+
 ## Todo:
-- [x] Add CI testing and linting
-- [x] Replace vanilla FauxGL with the favor of BrickGL
-- [ ] Bundle it into one file
-- [ ] Replace launch.bat with OCI serverless
+- [ ] Find a way to add mesh in
+- [ ] Make an item loader
+
