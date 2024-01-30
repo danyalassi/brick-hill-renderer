@@ -1,6 +1,6 @@
 schema_version: 20180708
-name: renderer
-version: 0.0.1
+name: render
+version: 0.0.14
 runtime: go
 build_image: fnproject/go:1.19-dev
 run_image: fnproject/go:1.19
