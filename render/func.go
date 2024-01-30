@@ -78,33 +78,45 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	context := fauxgl.NewContext(e.Size, e.Size, scale, shader)
 	scene := fauxgl.NewScene(context)
 
+	mesh := LoadMeshFromURL("https://hawli.pages.dev/obj/Torso.obj")
+	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  LoadMeshFromURL("https://hawli.pages.dev/obj/Torso.obj"),
+		Mesh:  mesh,
 		Color: fauxgl.HexColor("777"),
 	})
 
+	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/Head.obj")
+	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  LoadMeshFromURL("https://hawli.pages.dev/obj/Head.obj"),
+		Mesh:  mesh,
 		Color: fauxgl.HexColor("777"),
 	})
 
+	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/LeftArm.obj")
+	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  LoadMeshFromURL("https://hawli.pages.dev/obj/LeftArm.obj"),
+		Mesh:  mesh,
 		Color: fauxgl.HexColor("777"),
 	})
 
+	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/LeftLeg.obj")
+	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  LoadMeshFromURL("https://hawli.pages.dev/obj/LeftLeg.obj"),
+		Mesh:  mesh,
 		Color: fauxgl.HexColor("777"),
 	})
 
+	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/RightArm.obj")
+	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  LoadMeshFromURL("https://hawli.pages.dev/obj/RightArm.obj"),
+		Mesh:  mesh,
 		Color: fauxgl.HexColor("777"),
 	})
 
+	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/RightLeg.obj")
+	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  LoadMeshFromURL("https://hawli.pages.dev/obj/RightLeg.obj"),
+		Mesh:  mesh,
 		Color: fauxgl.HexColor("777"),
 	})
 
