@@ -23,7 +23,7 @@ fn create app goapp
 
 5. deploy app
 ```sh
-fn --verbose deploy --app myapp --local
+fn --verbose deploy --app goapp --local
 ```
 
 6. test
