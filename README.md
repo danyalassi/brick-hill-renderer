@@ -28,7 +28,7 @@ fn --verbose deploy --app goapp --local
 
 6. test
 ```sh
-echo -n '{"avatarJSON":"","size":512}' | fn invoke myapp render --content-type application/json
+echo -n '{"avatarJSON":"","size":512}' | fn invoke goapp render --content-type application/json
 ```
 
 ## Todo:
