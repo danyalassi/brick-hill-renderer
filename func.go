@@ -121,7 +121,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	var avatarJSON string
 	if e.AvatarJSON == "" {
 		// Use the default JSON string if AvatarJSON is empty
-		avatarJSON = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":0,\"pants\":0,\"shirt\":364985,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
+		avatarJSON = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[,0,0,0,0],\"head\":0,\"tool\":0,\"pants\":0,\"shirt\":364985,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
 	} else {
 		avatarJSON = e.AvatarJSON
 	}
@@ -253,6 +253,35 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		Color:   fauxgl.HexColor(avatar.Colors["right_leg"]),
 		Texture: pants,
 	})
+
+	hats, ok := avatar.Items["hats"].([]interface{})
+	if ok {
+		for _, hatValue := range hats {
+			if hat, ok := hatValue.(float64); ok && hat != 0 {
+				resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(hat)))
+				if err != nil {
+					panic(err)
+				}
+				defer resp.Body.Close()
+
+				var data []map[string]string
+				err = json.NewDecoder(resp.Body).Decode(&data)
+				if err != nil {
+					panic(err)
+				}
+
+				texture := data[0]["texture"]
+				texture = texture[len("asset://"):]
+				hatMesh := data[0]["mesh"]
+				hatMesh = hatMesh[len("asset://"):]
+
+				scene.AddObject(&fauxgl.Object{
+					Mesh:    LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + hatMesh),
+					Texture: LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture),
+				})
+			}
+		}
+	}
 
 	shader.AmbientColor = fauxgl.HexColor("AAA")
 	shader.DiffuseColor = fauxgl.HexColor("777")
