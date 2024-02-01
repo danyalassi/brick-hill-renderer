@@ -77,7 +77,7 @@ func LoadTexture(url string) fauxgl.Texture {
 	return fauxgl.TexFromBytes(body)
 }
 
-// LoadItem loads item for url
+// LoadItem loads item from url
 func LoadItem(item int, scene *fauxgl.Scene) {
 	if item != 0 {
 		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", item))
