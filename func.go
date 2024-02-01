@@ -90,7 +90,6 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 
 	def := "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":0,\"pants\":0,\"shirt\":0,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
 
-	// Decode the JSON string into an Avatar struct
 	avatar := Avatar{}
 	err = json.Unmarshal([]byte(def), &avatar)
 	if err != nil {
@@ -108,7 +107,6 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	pants := LoadTexture("https://hawli.pages.dev/Template.png")
 
 	mesh := LoadMeshFromURL("https://hawli.pages.dev/obj/Torso.obj")
-	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor("777"),
@@ -116,18 +114,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	})
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/Head.obj")
-	mesh.SmoothNormals()
-	if avatar.Items["face"] == 0 {
-		scene.AddObject(&fauxgl.Object{
-			Mesh:    mesh,
-			Color:   fauxgl.HexColor(avatar.Colors["head"]),
-			Texture: LoadTexture("https://hawli.pages.dev/Face.png"),
-		})
-	} else {
-		faceValue, ok := avatar.Items["face"].(float64)
-		if !ok {
-			panic(err)
-		}
+	if faceValue, ok := avatar.Items["face"].(float64); ok && faceValue != 0 {
 		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(faceValue)))
 		if err != nil {
 			panic(err)
@@ -149,10 +136,16 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 				Texture: LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture),
 			})
 		}
+	} else {
+		// Load the default face texture
+		scene.AddObject(&fauxgl.Object{
+			Mesh:    mesh,
+			Color:   fauxgl.HexColor(avatar.Colors["head"]),
+			Texture: LoadTexture("https://hawli.pages.dev/Face.png"),
+		})
 	}
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/LeftArm.obj")
-	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["left_arm"]),
@@ -160,7 +153,6 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	})
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/LeftLeg.obj")
-	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["left_leg"]),
@@ -168,7 +160,6 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	})
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/RightArm.obj")
-	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["right_arm"]),
@@ -176,7 +167,6 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	})
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/RightLeg.obj")
-	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["right_leg"]),
