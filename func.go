@@ -23,18 +23,23 @@ const (
 )
 
 var (
-	eye    = fauxgl.V(-0.75, 0.85, -2)
+	eye    = fauxgl.V(-2, 0.85, 0.75)
 	center = fauxgl.V(0, 0.06, 0)
 	up     = fauxgl.V(0, 1, 0)
-	light  = fauxgl.V(0, 6, -4).Normalize()
-
-	def = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":0,\"pants\":0,\"shirt\":0,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
+	light  = fauxgl.V(-4, 6, 0).Normalize()
 )
 
 // RenderEvent input data to lambda to return an ImageResponse
 type RenderEvent struct {
 	AvatarJSON string `json:"avatarJSON"`
 	Size       int    `json:"size"`
+}
+
+// Avatar avatar
+type Avatar struct {
+	UserID int                    `json:"user_id"`
+	Items  map[string]interface{} `json:"items"`
+	Colors map[string]string      `json:"colors"`
 }
 
 // ImageResponse lambda response for a base64 encoded render
@@ -55,21 +60,42 @@ func LoadMeshFromURL(url string) *fauxgl.Mesh {
 	return mesh
 }
 
+func LoadTexture(url string) fauxgl.Texture {
+	resp, err := http.Get(url)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	return fauxgl.TexFromBytes(body)
+}
+
 func main() {
 	fdk.Handle(fdk.HandlerFunc(HandleRenderEvent))
 }
 
 // HandleRenderEvent function to process the rendering
 func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
-	e := RenderEvent{}
+	var e RenderEvent
 	err := json.NewDecoder(in).Decode(&e)
 	if err != nil {
-		fmt.Fprintln(out, "Error:", err)
+		fmt.Println("Error:", err)
 		return
 	}
 
-	if e.AvatarJSON == "" {
-		e.AvatarJSON = def
+	def := "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":0,\"pants\":0,\"shirt\":0,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
+
+	// Decode the JSON string into an Avatar struct
+	avatar := Avatar{}
+	err = json.Unmarshal([]byte(def), &avatar)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
 	}
 
 	aspect := float64(e.Size) / float64(e.Size)
@@ -78,46 +104,55 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	context := fauxgl.NewContext(e.Size, e.Size, scale, shader)
 	scene := fauxgl.NewScene(context)
 
+	shirt := LoadTexture("https://hawli.pages.dev/Template.png")
+	pants := LoadTexture("https://hawli.pages.dev/Template.png")
+
 	mesh := LoadMeshFromURL("https://hawli.pages.dev/obj/Torso.obj")
 	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  mesh,
-		Color: fauxgl.HexColor("777"),
+		Mesh:    mesh,
+		Color:   fauxgl.HexColor("777"),
+		Texture: shirt,
 	})
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/Head.obj")
 	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  mesh,
-		Color: fauxgl.HexColor("777"),
+		Mesh:    mesh,
+		Color:   fauxgl.HexColor(avatar.Colors["head"]),
+		Texture: LoadTexture("https://hawli.pages.dev/Face.png"),
 	})
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/LeftArm.obj")
 	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  mesh,
-		Color: fauxgl.HexColor("777"),
+		Mesh:    mesh,
+		Color:   fauxgl.HexColor(avatar.Colors["left_arm"]),
+		Texture: shirt,
 	})
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/LeftLeg.obj")
 	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  mesh,
-		Color: fauxgl.HexColor("777"),
+		Mesh:    mesh,
+		Color:   fauxgl.HexColor(avatar.Colors["left_leg"]),
+		Texture: pants,
 	})
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/RightArm.obj")
 	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  mesh,
-		Color: fauxgl.HexColor("777"),
+		Mesh:    mesh,
+		Color:   fauxgl.HexColor(avatar.Colors["right_arm"]),
+		Texture: shirt,
 	})
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/RightLeg.obj")
 	mesh.SmoothNormals()
 	scene.AddObject(&fauxgl.Object{
-		Mesh:  mesh,
-		Color: fauxgl.HexColor("777"),
+		Mesh:    mesh,
+		Color:   fauxgl.HexColor(avatar.Colors["right_leg"]),
+		Texture: pants,
 	})
 
 	shader.AmbientColor = fauxgl.HexColor("AAA")
