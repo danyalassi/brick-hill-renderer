@@ -89,10 +89,16 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		return
 	}
 
-	def := "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":0,\"pants\":0,\"shirt\":364985,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
+	var avatarJSON string
+	if e.AvatarJSON == "" {
+		// Use the default JSON string if AvatarJSON is empty
+		avatarJSON = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":0,\"pants\":0,\"shirt\":364985,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
+	} else {
+		avatarJSON = e.AvatarJSON
+	}
 
 	avatar := Avatar{}
-	err = json.Unmarshal([]byte(def), &avatar)
+	err = json.Unmarshal([]byte(avatarJSON), &avatar)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
