@@ -117,11 +117,39 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/Head.obj")
 	mesh.SmoothNormals()
-	scene.AddObject(&fauxgl.Object{
-		Mesh:    mesh,
-		Color:   fauxgl.HexColor(avatar.Colors["head"]),
-		Texture: LoadTexture("https://hawli.pages.dev/Face.png"),
-	})
+	if avatar.Items["face"] == 0 {
+		scene.AddObject(&fauxgl.Object{
+			Mesh:    mesh,
+			Color:   fauxgl.HexColor(avatar.Colors["head"]),
+			Texture: LoadTexture("https://hawli.pages.dev/Face.png"),
+		})
+	} else {
+		faceValue, ok := avatar.Items["face"].(float64)
+		if !ok {
+			panic(err)
+		}
+		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(faceValue)))
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		var data []map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			panic(err)
+		}
+
+		if len(data) > 0 {
+			texture := data[0]["texture"]
+			texture = texture[len("asset://"):]
+			scene.AddObject(&fauxgl.Object{
+				Mesh:    mesh,
+				Color:   fauxgl.HexColor(avatar.Colors["head"]),
+				Texture: LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture),
+			})
+		}
+	}
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/LeftArm.obj")
 	mesh.SmoothNormals()
