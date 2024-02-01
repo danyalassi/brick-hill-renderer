@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image"
 	"image/png"
 	"io"
 	"net/http"
@@ -88,7 +89,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		return
 	}
 
-	def := "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":0,\"pants\":0,\"shirt\":0,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
+	def := "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":0,\"pants\":0,\"shirt\":364985,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
 
 	avatar := Avatar{}
 	err = json.Unmarshal([]byte(def), &avatar)
@@ -103,8 +104,43 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	context := fauxgl.NewContext(e.Size, e.Size, scale, shader)
 	scene := fauxgl.NewScene(context)
 
-	shirt := LoadTexture("https://hawli.pages.dev/Template.png")
-	pants := LoadTexture("https://hawli.pages.dev/Template.png")
+	shirt := fauxgl.NewImageTexture(image.NewRGBA(image.Rect(0, 0, 1, 1)))
+	if shirtValue, ok := avatar.Items["shirt"].(float64); ok && shirtValue != 0 {
+		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(shirtValue)))
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		var data []map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			panic(err)
+		}
+
+		texture := data[0]["texture"]
+		texture = texture[len("asset://"):]
+		shirt = LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture)
+	}
+
+	pants := fauxgl.NewImageTexture(image.NewRGBA(image.Rect(0, 0, 1, 1)))
+	if pantsValue, ok := avatar.Items["pants"].(float64); ok && pantsValue != 0 {
+		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(pantsValue)))
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		var data []map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			panic(err)
+		}
+
+		texture := data[0]["texture"]
+		texture = texture[len("asset://"):]
+		pants = LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture)
+	}
 
 	mesh := LoadMeshFromURL("https://hawli.pages.dev/obj/Torso.obj")
 	scene.AddObject(&fauxgl.Object{
