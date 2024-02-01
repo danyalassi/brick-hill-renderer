@@ -24,10 +24,10 @@ const (
 )
 
 var (
-	eye    = fauxgl.V(-2, 0.85, 0.75)
+	eye    = fauxgl.V(0.75, 0.85, 2)
 	center = fauxgl.V(0, 0.06, 0)
 	up     = fauxgl.V(0, 1, 0)
-	light  = fauxgl.V(-4, 6, 0).Normalize()
+	light  = fauxgl.V(0, 6, 4).Normalize()
 )
 
 // RenderEvent input data to lambda to return an ImageResponse
