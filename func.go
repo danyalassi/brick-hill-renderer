@@ -76,6 +76,33 @@ func LoadTexture(url string) fauxgl.Texture {
 	return fauxgl.TexFromBytes(body)
 }
 
+func LoadItem(item int, scene *fauxgl.Scene, avatar *Avatar) {
+	if itemValue, ok := avatar.Items["pants"].(float64); ok && itemValue != 0 {
+		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(itemValue)))
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		var data []map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			panic(err)
+		}
+
+		texture := data[0]["texture"]
+		texture = texture[len("asset://"):]
+
+		mesh := data[0]["mesh"]
+		mesh = mesh[len("asset://"):]
+
+		scene.AddObject(&fauxgl.Object{
+			Mesh:    LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + mesh),
+			Texture: LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture),
+		})
+	}
+}
+
 func main() {
 	fdk.Handle(fdk.HandlerFunc(HandleRenderEvent))
 }
