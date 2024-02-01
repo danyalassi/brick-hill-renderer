@@ -76,9 +76,9 @@ func LoadTexture(url string) fauxgl.Texture {
 	return fauxgl.TexFromBytes(body)
 }
 
-func LoadItem(item int, scene *fauxgl.Scene, avatar *Avatar) {
-	if itemValue, ok := avatar.Items["pants"].(float64); ok && itemValue != 0 {
-		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(itemValue)))
+func LoadItem(item int, scene *fauxgl.Scene) {
+	if item != 0 {
+		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", item))
 		if err != nil {
 			panic(err)
 		}
@@ -228,12 +228,22 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		Texture: pants,
 	})
 
-	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/RightArm.obj")
-	scene.AddObject(&fauxgl.Object{
-		Mesh:    mesh,
-		Color:   fauxgl.HexColor(avatar.Colors["right_arm"]),
-		Texture: shirt,
-	})
+	if toolValue, ok := avatar.Items["tool"].(float64); ok && toolValue != 0 {
+		mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/ArmHold.obj")
+		scene.AddObject(&fauxgl.Object{
+			Mesh:    mesh,
+			Color:   fauxgl.HexColor(avatar.Colors["right_arm"]),
+			Texture: shirt,
+		})
+		LoadItem(int(toolValue), scene)
+	} else {
+		mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/RightArm.obj")
+		scene.AddObject(&fauxgl.Object{
+			Mesh:    mesh,
+			Color:   fauxgl.HexColor(avatar.Colors["right_arm"]),
+			Texture: shirt,
+		})
+	}
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/RightLeg.obj")
 	scene.AddObject(&fauxgl.Object{
