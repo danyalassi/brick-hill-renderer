@@ -33,6 +33,7 @@ echo -n '{"avatarJSON":"","size":512}' | fn invoke goapp render --content-type a
 
 ## Todo:
 - [x] Find a way to add mesh in
-- [ ] Make an item loader
+- [x] Make an item loader
 - [ ] Re-add UUID lmfao 
 - [x] Put baker's face and head
+- [ ] Add head loading?
