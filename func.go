@@ -92,15 +92,11 @@ func LoadItem(item int, scene *fauxgl.Scene) {
 			panic(err)
 		}
 
-		texture := data[0]["texture"]
-		texture = texture[len("asset://"):]
-
 		mesh := data[0]["mesh"]
 		mesh = mesh[len("asset://"):]
 
 		scene.AddObject(&fauxgl.Object{
-			Mesh:    LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + mesh),
-			Texture: LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture),
+			Mesh: LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + mesh),
 		})
 	}
 }
@@ -121,7 +117,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	var avatarJSON string
 	if e.AvatarJSON == "" {
 		// Use the default JSON string if AvatarJSON is empty
-		avatarJSON = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":0,\"pants\":0,\"shirt\":364985,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
+		avatarJSON = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":244597,\"tool\":0,\"pants\":0,\"shirt\":364985,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
 	} else {
 		avatarJSON = e.AvatarJSON
 	}
@@ -184,7 +180,28 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		Texture: shirt,
 	})
 
-	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/Head.obj")
+	if headValue, ok := avatar.Items["head"].(float64); ok && headValue != 0 {
+		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(headValue)))
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		var data []map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			panic(err)
+		}
+
+		if len(data) > 0 {
+			meshdat := data[0]["mesh"]
+			meshdat = meshdat[len("asset://"):]
+			mesh = LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + meshdat)
+		}
+	} else {
+		mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/Head.obj")
+	}
+
 	if faceValue, ok := avatar.Items["face"].(float64); ok && faceValue != 0 {
 		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(faceValue)))
 		if err != nil {
