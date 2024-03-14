@@ -20,9 +20,6 @@ jobs:
       run: |
         curl -LSs https://raw.githubusercontent.com/fnproject/cli/master/install | sh
 
-    - name: Install jq
-      run: sudo apt-get install -y jq
-
     - name: Start Fn Server
       run: fn start &
 
@@ -35,19 +32,7 @@ jobs:
     - name: Test Fn Function
       id: test-function
       run: |
-        response=$(echo -n '{"avatarJSON":"","size":512}' | fn invoke goapp render --content-type application/json)
-        echo "::set-output name=response::$response"
-
-    - name: Save Image
-      run: |
-        image_data=$(echo "${{ steps.test-function.outputs.response }}" | jq -r '.image')
-        echo "$image_data" | base64 -d > output.png
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: rendered-image
-        path: output.png
+        echo -n '{"avatarJSON":"","size":512}' | fn invoke goapp render --content-type application/json
 
     - name: Stop Fn Server
       run: fn stop
