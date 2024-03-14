@@ -21,7 +21,7 @@ jobs:
         curl -LSs https://raw.githubusercontent.com/fnproject/cli/master/install | sh
 
     - name: Start Fn Server
-      run: fn start
+      run: fn start &
 
     - name: Create Fn App
       run: fn create app goapp
