@@ -1,0 +1,38 @@
+name: Fn Project Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Docker
+      uses: docker-practice/actions-setup-docker@master
+
+    - name: Install Fn Project CLI
+      run: |
+        curl -LSs https://raw.githubusercontent.com/fnproject/cli/master/install | sh
+
+    - name: Start Fn Server
+      run: fn start
+
+    - name: Create Fn App
+      run: fn create app goapp
+
+    - name: Deploy Fn App
+      run: fn --verbose deploy --app goapp --local
+
+    - name: Test Fn Function
+      run: |
+        echo -n '{"avatarJSON":"","size":512}' | fn invoke goapp render --content-type application/json
+
+    - name: Stop Fn Server
+      run: fn stop
+      if: always()
