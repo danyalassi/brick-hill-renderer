@@ -36,4 +36,5 @@ echo -n '{"avatarJSON":"","size":512}' | fn invoke goapp render --content-type a
 - [x] Make an item loader
 - [ ] Re-add UUID lmfao 
 - [x] Put baker's face and head
-- [ ] Add head loading?
+- [x] Add head loading?
+- [ ] Add t-shirt loading, we arent Polytoria
