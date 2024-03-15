@@ -29,10 +29,26 @@ jobs:
     - name: Deploy Fn App
       run: fn --verbose deploy --app goapp --local
 
+    - name: Install jq
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+
     - name: Test Fn Function
       id: test-function
       run: |
-        echo -n '{"avatarJSON":"","size":512}' | fn invoke goapp render --content-type application/json
+        result=$(echo -n '{"avatarJSON":"","size":512}' | fn invoke goapp render --content-type application/json)
+        echo "::set-output name=image::$(echo $result | jq -r '.image')"
+
+    - name: Store JSON result
+      run: |
+        echo '${{ steps.test-function.outputs.image }}' > image.txt
+
+    - name: Upload JSON artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: function-result
+        path: image.txt
 
     - name: Stop Fn Server
       run: fn stop
