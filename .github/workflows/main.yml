@@ -38,17 +38,22 @@ jobs:
       id: test-function
       run: |
         result=$(echo -n '{"avatarJSON":"","size":512}' | fn invoke goapp render --content-type application/json)
-        echo "::set-output name=image::$(echo $result | jq -r '.image')"
+        echo "IMAGE=$(echo $result | jq -r '.image')" >> $GITHUB_ENV
 
-    - name: Store JSON result
+    - name: Store Base64 Image
       run: |
-        echo '${{ steps.test-function.outputs.image }}' > image.txt
+        echo "$IMAGE" > image.txt
 
-    - name: Upload JSON artifact
-      uses: actions/upload-artifact@v3
+    - name: Convert to PNG
+      run: |
+        base64 --decode image.txt > image.png
+
+    - name: Upload Image Artifact
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@master
       with:
-        name: function-result
-        path: image.txt
+        name: function-image
+        path: image.png
 
     - name: Stop Fn Server
       run: fn stop
