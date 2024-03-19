@@ -117,7 +117,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	var avatarJSON string
 	if e.AvatarJSON == "" {
 		// Use the default JSON string if AvatarJSON is empty
-		avatarJSON = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":244597,\"tool\":0,\"pants\":0,\"shirt\":364985,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"eab372\",\"torso\":\"85ad00\",\"left_arm\":\"eab372\",\"left_leg\":\"37302c\",\"right_arm\":\"eab372\",\"right_leg\":\"37302c\"}}"
+		avatarJSON = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":6929,\"pants\":0,\"shirt\":0,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"f3b700\",\"torso\":\"929292\",\"left_arm\":\"f3b700\",\"left_leg\":\"e6e6e6\",\"right_arm\":\"f3b700\",\"right_leg\":\"e6e6e6\"}}"
 	} else {
 		avatarJSON = e.AvatarJSON
 	}
