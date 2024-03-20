@@ -95,8 +95,12 @@ func LoadItem(item int, scene *fauxgl.Scene) {
 		mesh := data[0]["mesh"]
 		mesh = mesh[len("asset://"):]
 
+		texture := data[0]["texture"]
+		texture = texture[len("asset://"):]
+
 		scene.AddObject(&fauxgl.Object{
 			Mesh: LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + mesh),
+			Texture: LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture),
 		})
 	}
 }
@@ -176,7 +180,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	mesh := LoadMeshFromURL("https://hawli.pages.dev/obj/Torso.obj")
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
-		Color:   fauxgl.HexColor("777"),
+		Color:   fauxgl.HexColor(avatar.Colors["torso"]),
 		Texture: shirt,
 	})
 
