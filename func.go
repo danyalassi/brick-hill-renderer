@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
+	"image/draw"
 	"image/png"
 	"io"
 	"net/http"
@@ -99,7 +100,7 @@ func LoadItem(item int, scene *fauxgl.Scene) {
 		texture = texture[len("asset://"):]
 
 		scene.AddObject(&fauxgl.Object{
-			Mesh: LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + mesh),
+			Mesh:    LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + mesh),
 			Texture: LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture),
 		})
 	}
@@ -121,7 +122,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	var avatarJSON string
 	if e.AvatarJSON == "" {
 		// Use the default JSON string if AvatarJSON is empty
-		avatarJSON = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":6929,\"pants\":0,\"shirt\":0,\"figure\":0,\"tshirt\":0},\"colors\":{\"head\":\"f3b700\",\"torso\":\"929292\",\"left_arm\":\"f3b700\",\"left_leg\":\"e6e6e6\",\"right_arm\":\"f3b700\",\"right_leg\":\"e6e6e6\"}}"
+		avatarJSON = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":6929,\"pants\":0,\"shirt\":340170,\"figure\":0,\"tshirt\":367891},\"colors\":{\"head\":\"f3b700\",\"torso\":\"929292\",\"left_arm\":\"f3b700\",\"left_leg\":\"e6e6e6\",\"right_arm\":\"f3b700\",\"right_leg\":\"e6e6e6\"}}"
 	} else {
 		avatarJSON = e.AvatarJSON
 	}
@@ -139,7 +140,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	context := fauxgl.NewContext(e.Size, e.Size, scale, shader)
 	scene := fauxgl.NewScene(context)
 
-	shirt := fauxgl.NewImageTexture(image.NewRGBA(image.Rect(0, 0, 1, 1)))
+	shirt := image.NewRGBA(image.Rect(0, 0, 1, 1))
 	if shirtValue, ok := avatar.Items["shirt"].(float64); ok && shirtValue != 0 {
 		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(shirtValue)))
 		if err != nil {
@@ -153,10 +154,87 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 			panic(err)
 		}
 
+		if len(data) == 0 {
+			panic("API response does not contain expected data")
+		}
+
 		texture := data[0]["texture"]
 		texture = texture[len("asset://"):]
-		shirt = LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture)
+
+		resp, err = http.Get("https://api.brick-hill.com/v1/assets/get/" + texture)
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			panic(fmt.Errorf("API request failed with status code %d", resp.StatusCode))
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		img, _, err := image.Decode(bytes.NewReader(body))
+		if err != nil {
+			panic(err)
+		}
+
+		rgba := image.NewRGBA(img.Bounds())
+		draw.Draw(rgba, rgba.Bounds(), img, image.Point{0, 0}, draw.Src)
+
+		shirt = rgba
 	}
+
+	tshirt := image.NewRGBA(image.Rect(0, 0, 1, 1))
+	if tshirtValue, ok := avatar.Items["tshirt"].(float64); ok && tshirtValue != 0 {
+		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(tshirtValue)))
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		var data []map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			panic(err)
+		}
+
+		texture := data[0]["texture"]
+		texture = texture[len("asset://"):]
+
+		resp, err = http.Get("https://api.brick-hill.com/v1/assets/get/" + texture)
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		img, _, err := image.Decode(bytes.NewReader(body))
+		if err != nil {
+			panic(err)
+		}
+
+		rgba := image.NewRGBA(img.Bounds())
+		draw.Draw(rgba, rgba.Bounds(), img, image.Point{0, 0}, draw.Src)
+
+		tshirt = rgba
+	}
+
+	combinedWidth := shirt.Bounds().Max.X
+	combinedHeight := shirt.Bounds().Max.Y
+	combined := image.NewRGBA(image.Rect(0, 0, combinedWidth, combinedHeight))
+
+	draw.Draw(combined, shirt.Bounds(), shirt, image.Point{}, draw.Over)
+
+	draw.Draw(combined, tshirt.Bounds(), tshirt, image.Point{}, draw.Over)
+
+	combinedShirt := fauxgl.NewImageTexture(combined)
 
 	pants := fauxgl.NewImageTexture(image.NewRGBA(image.Rect(0, 0, 1, 1)))
 	if pantsValue, ok := avatar.Items["pants"].(float64); ok && pantsValue != 0 {
@@ -181,7 +259,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["torso"]),
-		Texture: shirt,
+		Texture: combinedShirt,
 	})
 
 	if headValue, ok := avatar.Items["head"].(float64); ok && headValue != 0 {
@@ -241,7 +319,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["left_arm"]),
-		Texture: shirt,
+		Texture: combinedShirt,
 	})
 
 	mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/LeftLeg.obj")
@@ -256,7 +334,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		scene.AddObject(&fauxgl.Object{
 			Mesh:    mesh,
 			Color:   fauxgl.HexColor(avatar.Colors["right_arm"]),
-			Texture: shirt,
+			Texture: combinedShirt,
 		})
 		LoadItem(int(toolValue), scene)
 	} else {
@@ -264,7 +342,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		scene.AddObject(&fauxgl.Object{
 			Mesh:    mesh,
 			Color:   fauxgl.HexColor(avatar.Colors["right_arm"]),
-			Texture: shirt,
+			Texture: combinedShirt,
 		})
 	}
 

@@ -33,6 +33,6 @@ echo -n '{"avatarJSON":"","size":512}' | fn invoke goapp render --content-type a
 
 ## Todo:
 - [ ] Re-add UUID lmfao 
-- [ ] Replace baker's rigs with brick hill rigs
-- [ ] Add t-shirt loading, we arent Polytoria
+- [x] Replace baker's rigs with brick hill rigs
+- [x] Add t-shirt loading, we arent Polytoria (its kind of working? but no, tshirt is misplaced)
 - [ ] Add pre-cached resources (requires custom dockerfile)
