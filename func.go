@@ -50,62 +50,6 @@ type ImageResponse struct {
 	Image string `json:"image"`
 }
 
-// LoadMeshFromURL loads mesh from url
-func LoadMeshFromURL(url string) *fauxgl.Mesh {
-	resp, err := http.Get(url)
-	if err != nil {
-		panic(err)
-	}
-
-	mesh, _ := fauxgl.LoadOBJFromReader(resp.Body)
-
-	return mesh
-}
-
-// LoadTexture loads texture from URL
-func LoadTexture(url string) fauxgl.Texture {
-	resp, err := http.Get(url)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	return fauxgl.TexFromBytes(body)
-}
-
-// LoadItem loads item from url
-func LoadItem(item int, scene *fauxgl.Scene) {
-	if item != 0 {
-		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", item))
-		if err != nil {
-			panic(err)
-		}
-		defer resp.Body.Close()
-
-		var data []map[string]string
-		err = json.NewDecoder(resp.Body).Decode(&data)
-		if err != nil {
-			panic(err)
-		}
-
-		mesh := data[0]["mesh"]
-		mesh = mesh[len("asset://"):]
-
-		texture := data[0]["texture"]
-		texture = texture[len("asset://"):]
-
-		scene.AddObject(&fauxgl.Object{
-			Mesh:    LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + mesh),
-			Texture: LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture),
-		})
-	}
-}
-
 func main() {
 	fdk.Handle(fdk.HandlerFunc(HandleRenderEvent))
 }
@@ -315,16 +259,14 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		})
 	}
 
-	mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/LeftArm.obj")
 	scene.AddObject(&fauxgl.Object{
-		Mesh:    mesh,
+		Mesh:    LoadMeshFromURL("https://hawli.pages.dev/lunarhill/LeftArm.obj"),
 		Color:   fauxgl.HexColor(avatar.Colors["left_arm"]),
 		Texture: combinedShirt,
 	})
 
-	mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/LeftLeg.obj")
 	scene.AddObject(&fauxgl.Object{
-		Mesh:    mesh,
+		Mesh:    LoadMeshFromURL("https://hawli.pages.dev/lunarhill/LeftLeg.obj"),
 		Color:   fauxgl.HexColor(avatar.Colors["left_leg"]),
 		Texture: pants,
 	})
@@ -357,27 +299,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	if ok {
 		for _, hatValue := range hats {
 			if hat, ok := hatValue.(float64); ok && hat != 0 {
-				resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", int(hat)))
-				if err != nil {
-					panic(err)
-				}
-				defer resp.Body.Close()
-
-				var data []map[string]string
-				err = json.NewDecoder(resp.Body).Decode(&data)
-				if err != nil {
-					panic(err)
-				}
-
-				texture := data[0]["texture"]
-				texture = texture[len("asset://"):]
-				hatMesh := data[0]["mesh"]
-				hatMesh = hatMesh[len("asset://"):]
-
-				scene.AddObject(&fauxgl.Object{
-					Mesh:    LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + hatMesh),
-					Texture: LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture),
-				})
+				LoadItem(int(hat), scene)
 			}
 		}
 	}
