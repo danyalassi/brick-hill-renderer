@@ -177,7 +177,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		pants = LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture)
 	}
 
-	mesh := LoadMeshFromURL("https://hawli.pages.dev/obj/Torso.obj")
+	mesh := LoadMeshFromURL("https://hawli.pages.dev/lunarhill/Torso.obj")
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["torso"]),
