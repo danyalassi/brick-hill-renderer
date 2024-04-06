@@ -203,7 +203,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 			mesh = LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + meshdat)
 		}
 	} else {
-		mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/Head.obj")
+		mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/Head.obj")
 	}
 
 	if faceValue, ok := avatar.Items["face"].(float64); ok && faceValue != 0 {
@@ -233,18 +233,18 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		scene.AddObject(&fauxgl.Object{
 			Mesh:    mesh,
 			Color:   fauxgl.HexColor(avatar.Colors["head"]),
-			Texture: LoadTexture("https://hawli.pages.dev/Face.png"),
+			Texture: LoadTexture("https://hawli.pages.dev/lunarhill/defaultFace.png"),
 		})
 	}
 
-	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/LeftArm.obj")
+	mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/LeftArm.obj")
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["left_arm"]),
 		Texture: shirt,
 	})
 
-	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/LeftLeg.obj")
+	mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/LeftLeg.obj")
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["left_leg"]),
@@ -252,7 +252,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	})
 
 	if toolValue, ok := avatar.Items["tool"].(float64); ok && toolValue != 0 {
-		mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/ArmHold.obj")
+		mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/ArmHold.obj")
 		scene.AddObject(&fauxgl.Object{
 			Mesh:    mesh,
 			Color:   fauxgl.HexColor(avatar.Colors["right_arm"]),
@@ -260,7 +260,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		})
 		LoadItem(int(toolValue), scene)
 	} else {
-		mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/RightArm.obj")
+		mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/RightArm.obj")
 		scene.AddObject(&fauxgl.Object{
 			Mesh:    mesh,
 			Color:   fauxgl.HexColor(avatar.Colors["right_arm"]),
@@ -268,7 +268,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		})
 	}
 
-	mesh = LoadMeshFromURL("https://hawli.pages.dev/obj/RightLeg.obj")
+	mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/RightLeg.obj")
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["right_leg"]),
