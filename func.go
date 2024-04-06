@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	eye    = fauxgl.V(0.75, 0.85, 2)
+	eye    = fauxgl.V(-0.75, 0.85, -2)
 	center = fauxgl.V(0, 0.06, 0)
 	up     = fauxgl.V(0, 1, 0)
 	light  = fauxgl.V(0, 6, -4).Normalize()
