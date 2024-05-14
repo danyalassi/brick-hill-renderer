@@ -14,7 +14,7 @@ import (
 
 	"github.com/nfnt/resize"
 
-	// "github.com/gofrs/uuid"
+	"github.com/gofrs/uuid"
 	fdk "github.com/fnproject/fdk-go"
 	fauxgl "github.com/hawl1/brickgl"
 )
@@ -48,7 +48,7 @@ type Avatar struct {
 
 // ImageResponse lambda response for a base64 encoded render
 type ImageResponse struct {
-	// gonna fix this, can stay for now UUID  string `json:"uuid"`
+	UUID string `json:"uuid"`
 	Image string `json:"image"`
 }
 
@@ -333,8 +333,12 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		fmt.Fprintln(out, "Error:", err)
 	}
 
+	namespaceUUID := uuid.Must(uuid.FromString("6ba7b810-9dad-11d1-80b4-00c04fd430c8"))
+	uuid := uuid.NewV5(namespaceUUID, "lunar-hill")
+
 	resp := ImageResponse{
 		Image: base64.StdEncoding.EncodeToString(buf.Bytes()),
+		UUID:  uuid.String(),
 	}
 
 	json.NewEncoder(out).Encode(resp)

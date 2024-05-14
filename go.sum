@@ -4,6 +4,8 @@ github.com/fnproject/fdk-go v0.0.39 h1:ro/APuyc2Vj/Yq4s4fXn2Ici74HcKfEYJkdY4hkDD
 github.com/fnproject/fdk-go v0.0.39/go.mod h1:hCpiyW8oIJpRdegoLf8PxKf9k+8mZZGeYgwSKOVG+K0=
 github.com/fogleman/simplify v0.0.0-20170216171241-d32f302d5046 h1:n3RPbpwXSFT0G8FYslzMUBDO09Ix8/dlqzvUkcJm4Jk=
 github.com/fogleman/simplify v0.0.0-20170216171241-d32f302d5046/go.mod h1:KDwyDqFmVUxUmo7tmqXtyaaJMdGon06y8BD2jmh84CQ=
+github.com/gofrs/uuid v4.4.0+incompatible h1:3qXRTX8/NbyulANqlc0lchS1gqAVxRgsuW1YrTJupqA=
+github.com/gofrs/uuid v4.4.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
 github.com/hawl1/brickgl v0.0.0-20240126142839-ad612bf48d3f h1:Bw3tBGtcZvKTtUjP9wKPhf3+WP80lAnN3+I3DmtXSoA=
 github.com/hawl1/brickgl v0.0.0-20240126142839-ad612bf48d3f/go.mod h1:7AcuuDLjY7w9/m3+ZolkfhdtXefRRx/Yp4IRWJJBzwE=
 github.com/hawl1/brickgl v0.0.0-20240130205028-d030712ee87c h1:uVQMifz2l34UDrukzmolwTHehBisw2kMyeOFuml0II4=
