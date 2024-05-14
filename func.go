@@ -12,7 +12,7 @@ import (
 	"io"
 	"net/http"
 
-	//"github.com/nfnt/resize"
+	"github.com/nfnt/resize"
 
 	// "github.com/gofrs/uuid"
 	fdk "github.com/fnproject/fdk-go"
@@ -68,7 +68,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	var avatarJSON string
 	if e.AvatarJSON == "" {
 		// Use the default JSON string if AvatarJSON is empty
-		avatarJSON = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":6929,\"pants\":0,\"shirt\":368750,\"figure\":0,\"tshirt\":367891},\"colors\":{\"head\":\"f3b700\",\"torso\":\"929292\",\"left_arm\":\"f3b700\",\"left_leg\":\"e6e6e6\",\"right_arm\":\"f3b700\",\"right_leg\":\"e6e6e6\"}}"
+		avatarJSON = "{\"user_id\":13,\"items\":{\"face\":0,\"hats\":[20121,0,0,0,0],\"head\":0,\"tool\":6929,\"pants\":0,\"shirt\":368750,\"figure\":0,\"tshirt\":187683},\"colors\":{\"head\":\"f3b700\",\"torso\":\"929292\",\"left_arm\":\"f3b700\",\"left_leg\":\"e6e6e6\",\"right_arm\":\"f3b700\",\"right_leg\":\"e6e6e6\"}}"
 	} else {
 		avatarJSON = e.AvatarJSON
 	}
@@ -166,18 +166,32 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		draw.Draw(rgba, rgba.Bounds(), img, image.Point{0, 0}, draw.Src)
 
 		tshirt = rgba
+		resizedTshirt := resize.Resize(126, 126, tshirt, resize.Lanczos3)
 
-		//background := image.NewRGBA(image.Rect(0, 0, 836, 836))
+		blankTemplate := image.NewRGBA(image.Rect(0, 0, 836, 836))
+
+		draw.Draw(blankTemplate, image.Rect(183, 87, 309, 213), resizedTshirt, image.Point{}, draw.Src)
+
+		tshirt = blankTemplate
 	}
 
 	combinedWidth := shirt.Bounds().Max.X
 	combinedHeight := shirt.Bounds().Max.Y
 	combined := image.NewRGBA(image.Rect(0, 0, combinedWidth, combinedHeight))
 
-	draw.Draw(combined, shirt.Bounds(), shirt, image.Point{}, draw.Src)
+	draw.Draw(combined, shirt.Bounds(), shirt, image.Point{}, draw.Over)
 
 	draw.Draw(combined, tshirt.Bounds(), tshirt, image.Point{}, draw.Over)
-	//331669
+
+	var tshirtBuf bytes.Buffer
+	if err := png.Encode(&tshirtBuf, combined); err != nil {
+		panic(err)
+	}
+
+	encoded := base64.StdEncoding.EncodeToString(tshirtBuf.Bytes())
+
+	fmt.Println(encoded)
+
 	combinedShirt := fauxgl.NewImageTexture(combined)
 
 	pants := fauxgl.NewImageTexture(image.NewRGBA(image.Rect(0, 0, 1, 1)))
