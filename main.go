@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -11,12 +10,11 @@ import (
 	"image/png"
 	"io"
 	"net/http"
-
-	"github.com/nfnt/resize"
+	"os"
 
 	"github.com/gofrs/uuid"
-	fdk "github.com/fnproject/fdk-go"
 	fauxgl "github.com/hawl1/brickgl"
+	"github.com/nfnt/resize"
 )
 
 const (
@@ -33,35 +31,131 @@ var (
 	light  = fauxgl.V(0, 6, 4).Normalize()
 )
 
-// RenderEvent input data to lambda to return an ImageResponse
+// RenderEvent input data structure
 type RenderEvent struct {
 	AvatarJSON string `json:"avatarJSON"`
 	Size       int    `json:"size"`
 }
 
-// Avatar avatar
+// Avatar structure for avatar data
 type Avatar struct {
 	UserID int                    `json:"user_id"`
 	Items  map[string]interface{} `json:"items"`
 	Colors map[string]string      `json:"colors"`
 }
 
-// ImageResponse lambda response for a base64 encoded render
+// ImageResponse structure for response data
 type ImageResponse struct {
-	UUID string `json:"uuid"`
+	UUID  string `json:"uuid"`
 	Image string `json:"image"`
 }
 
-func main() {
-	fdk.Handle(fdk.HandlerFunc(HandleRenderEvent))
+// LoadMeshFromURL loads mesh from url
+func LoadMeshFromURL(url string) *fauxgl.Mesh {
+	resp, err := http.Get(url)
+	if err != nil {
+		panic(err)
+	}
+
+	mesh, _ := fauxgl.LoadOBJFromReader(resp.Body)
+
+	return mesh
 }
 
-// HandleRenderEvent function to process the rendering
-func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
-	var e RenderEvent
-	err := json.NewDecoder(in).Decode(&e)
+func LoadMeshFromFile(filepath string) *fauxgl.Mesh {
+	file, err := os.Open(filepath)
 	if err != nil {
-		fmt.Println("Error:", err)
+		panic(err)
+	}
+	defer file.Close()
+
+	mesh, err := fauxgl.LoadOBJFromReader(file)
+	if err != nil {
+		panic(err)
+	}
+
+	return mesh
+}
+
+// LoadTexture loads texture from URL
+func LoadTexture(url string) fauxgl.Texture {
+	resp, err := http.Get(url)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	return fauxgl.TexFromBytes(body)
+}
+
+func LoadTextureFromFile(filepath string) fauxgl.Texture {
+	file, err := os.Open(filepath)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	body, err := io.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+
+	return fauxgl.TexFromBytes(body)
+}
+
+// LoadItem loads item from url
+func LoadItem(item int, scene *fauxgl.Scene) {
+	if item != 0 {
+		resp, err := http.Get(fmt.Sprintf("https://api.brick-hill.com/v1/assets/getPoly/1/%d", item))
+		if err != nil {
+			panic(err)
+		}
+		defer resp.Body.Close()
+
+		var data []map[string]string
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			panic(err)
+		}
+
+		mesh := data[0]["mesh"]
+		mesh = mesh[len("asset://"):]
+
+		texture := data[0]["texture"]
+		texture = texture[len("asset://"):]
+
+		scene.AddObject(&fauxgl.Object{
+			Mesh:    LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + mesh),
+			Texture: LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture),
+		})
+	}
+}
+
+func main() {
+	http.HandleFunc("/render", HandleRenderEvent)
+	fmt.Println("Server is listening on 0.0.0.0:8080...")
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// HandleRenderEvent handles the rendering HTTP request
+func HandleRenderEvent(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var e RenderEvent
+	err := json.NewDecoder(r.Body).Decode(&e)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
@@ -76,7 +170,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 	avatar := Avatar{}
 	err = json.Unmarshal([]byte(avatarJSON), &avatar)
 	if err != nil {
-		fmt.Println("Error:", err)
+		http.Error(w, "Invalid avatar JSON", http.StatusBadRequest)
 		return
 	}
 
@@ -188,10 +282,6 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		panic(err)
 	}
 
-	encoded := base64.StdEncoding.EncodeToString(tshirtBuf.Bytes())
-
-	fmt.Println(encoded)
-
 	combinedShirt := fauxgl.NewImageTexture(combined)
 
 	pants := fauxgl.NewImageTexture(image.NewRGBA(image.Rect(0, 0, 1, 1)))
@@ -213,7 +303,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		pants = LoadTexture("https://api.brick-hill.com/v1/assets/get/" + texture)
 	}
 
-	mesh := LoadMeshFromURL("https://hawli.pages.dev/lunarhill/Torso.obj")
+	mesh := LoadMeshFromFile("asset/Torso.obj")
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["torso"]),
@@ -239,7 +329,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 			mesh = LoadMeshFromURL("https://api.brick-hill.com/v1/assets/get/" + meshdat)
 		}
 	} else {
-		mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/Head.obj")
+		mesh = LoadMeshFromFile("asset/Head.obj")
 	}
 
 	if faceValue, ok := avatar.Items["face"].(float64); ok && faceValue != 0 {
@@ -269,24 +359,24 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		scene.AddObject(&fauxgl.Object{
 			Mesh:    mesh,
 			Color:   fauxgl.HexColor(avatar.Colors["head"]),
-			Texture: LoadTexture("https://hawli.pages.dev/lunarhill/defaultFace.png"),
+			Texture: LoadTextureFromFile("asset/DefaultFace.png"),
 		})
 	}
 
 	scene.AddObject(&fauxgl.Object{
-		Mesh:    LoadMeshFromURL("https://hawli.pages.dev/lunarhill/LeftArm.obj"),
+		Mesh:    LoadMeshFromFile("asset/LeftArm.obj"),
 		Color:   fauxgl.HexColor(avatar.Colors["left_arm"]),
 		Texture: combinedShirt,
 	})
 
 	scene.AddObject(&fauxgl.Object{
-		Mesh:    LoadMeshFromURL("https://hawli.pages.dev/lunarhill/LeftLeg.obj"),
+		Mesh:    LoadMeshFromFile("asset/LeftLeg.obj"),
 		Color:   fauxgl.HexColor(avatar.Colors["left_leg"]),
 		Texture: pants,
 	})
 
 	if toolValue, ok := avatar.Items["tool"].(float64); ok && toolValue != 0 {
-		mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/ArmHold.obj")
+		mesh = LoadMeshFromFile("asset/ArmHold.obj")
 		scene.AddObject(&fauxgl.Object{
 			Mesh:    mesh,
 			Color:   fauxgl.HexColor(avatar.Colors["right_arm"]),
@@ -294,7 +384,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		})
 		LoadItem(int(toolValue), scene)
 	} else {
-		mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/RightArm.obj")
+		mesh = LoadMeshFromFile("asset/RightArm.obj")
 		scene.AddObject(&fauxgl.Object{
 			Mesh:    mesh,
 			Color:   fauxgl.HexColor(avatar.Colors["right_arm"]),
@@ -302,7 +392,7 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 		})
 	}
 
-	mesh = LoadMeshFromURL("https://hawli.pages.dev/lunarhill/RightLeg.obj")
+	mesh = LoadMeshFromFile("asset/RightLeg.obj")
 	scene.AddObject(&fauxgl.Object{
 		Mesh:    mesh,
 		Color:   fauxgl.HexColor(avatar.Colors["right_leg"]),
@@ -328,18 +418,26 @@ func HandleRenderEvent(ctx context.Context, in io.Reader, out io.Writer) {
 
 	outImg := context.Image()
 	buf := new(bytes.Buffer)
-	err = png.Encode(buf, outImg)
-	if err != nil {
-		fmt.Fprintln(out, "Error:", err)
+	if err := png.Encode(buf, outImg); err != nil {
+		// Handle error
+		fmt.Println("Error encoding image to PNG:", err)
+		return
 	}
 
+	// Encode PNG bytes to base64
+	encodedImage := base64.StdEncoding.EncodeToString(buf.Bytes())
+
+	// Generate UUID
 	namespaceUUID := uuid.Must(uuid.FromString("6ba7b810-9dad-11d1-80b4-00c04fd430c8"))
 	uuid := uuid.NewV5(namespaceUUID, "lunar-hill")
 
+	// Create the response object
 	resp := ImageResponse{
-		Image: base64.StdEncoding.EncodeToString(buf.Bytes()),
+		Image: encodedImage,
 		UUID:  uuid.String(),
 	}
 
-	json.NewEncoder(out).Encode(resp)
+	// Return JSON response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }

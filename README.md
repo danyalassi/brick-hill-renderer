@@ -1,38 +1,26 @@
-# FauxGL OCI FaaS Renderer 
+# FauxGL Renderer For Local
 
-we replaced the entire renderer with brick hill's, so more to do :sob:
+Fnproject was a stupid idea so here we go
 
 ## how to test
 
-1. install dockah (docker)
+1. install [golang](https://go.dev/)
 
-2. install fn
+2. install packages
 ```sh
-curl -LSs https://raw.githubusercontent.com/fnproject/cli/master/install | sh
+go mod tidy
 ```
 
-3. run fn server (on a seperate terminal or window idk)
+3. run server
 ```sh
-fn start
+go run main.go
 ```
 
-4. create app
+4. test the server
 ```sh
-fn create app goapp
+curl -X POST -H "Content-Type: application/json" -d '{"avatarJSON":"","size":512}' http://0.0.0.0:8080/render
 ```
 
-5. deploy app
-```sh
-fn --verbose deploy --app goapp --local
-```
-
-6. test
-```sh
-echo -n '{"avatarJSON":"","size":512}' | fn invoke goapp render --content-type application/json
-```
-
-## Todo:
-- [x] Re-add UUID lmfao 
-- [x] Replace baker's rigs with brick hill rigs
-- [x] Add t-shirt loading
-- [ ] Add pre-cached resources (requires custom dockerfile)
+That's all!
+By the way, you can compile it and you'll never need to compile again! (you can compile on freebsd and prob get it working on mydevil ?)
+I won't be explaining that one though

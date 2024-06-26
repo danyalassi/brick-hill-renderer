@@ -2,10 +2,7 @@ module renderer
 
 go 1.19
 
-require (
-	github.com/fnproject/fdk-go v0.0.39
-	github.com/hawl1/brickgl v0.0.0-20240130205028-d030712ee87c // direct
-)
+require github.com/hawl1/brickgl v0.0.0-20240130205028-d030712ee87c // direct
 
 require (
 	github.com/disintegration/imaging v1.6.2 // indirect
