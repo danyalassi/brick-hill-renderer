@@ -15,6 +15,7 @@ import (
 	"github.com/gofrs/uuid"
 	fauxgl "github.com/hawl1/brickgl"
 	"github.com/nfnt/resize"
+	"github.com/spf13/pflag"
 )
 
 const (
@@ -29,6 +30,11 @@ var (
 	center = fauxgl.V(0, 0.06, 0)
 	up     = fauxgl.V(0, 1, 0)
 	light  = fauxgl.V(0, 6, 4).Normalize()
+
+	// Default values for host, port, and access key
+	defaultHost      = "0.0.0.0"
+	defaultPort      = 7231
+	defaultAccessKey = "change-it-or-die"
 )
 
 // RenderEvent input data structure
@@ -48,6 +54,26 @@ type Avatar struct {
 type ImageResponse struct {
 	UUID  string `json:"uuid"`
 	Image string `json:"image"`
+}
+
+func main() {
+	// Parse command-line flags
+	host := pflag.StringP("host", "H", defaultHost, "Host IP address to listen on")
+	port := pflag.IntP("port", "p", defaultPort, "Port to listen on")
+	accessKey := pflag.String("accesskey", defaultAccessKey, "Access key for authentication")
+
+	pflag.Parse()
+
+	http.HandleFunc("/render", func(w http.ResponseWriter, r *http.Request) {
+		HandleRenderEvent(w, r, *accessKey)
+	})
+
+	addr := fmt.Sprintf("%s:%d", *host, *port)
+	fmt.Printf("Server is listening on %s...\n", addr)
+	err := http.ListenAndServe(addr, nil)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // LoadMeshFromURL loads mesh from url
@@ -136,20 +162,20 @@ func LoadItem(item int, scene *fauxgl.Scene) {
 	}
 }
 
-func main() {
-	http.HandleFunc("/render", HandleRenderEvent)
-	fmt.Println("Server is listening on 0.0.0.0:8080...")
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		panic(err)
-	}
-}
-
 // HandleRenderEvent handles the rendering HTTP request
-func HandleRenderEvent(w http.ResponseWriter, r *http.Request) {
+func HandleRenderEvent(w http.ResponseWriter, r *http.Request, accessKey string) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
+	}
+
+	// Validate access key
+	if accessKey != "" {
+		rAccessKey := r.Header.Get("X-Access-Key")
+		if rAccessKey != accessKey {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 	}
 
 	var e RenderEvent
