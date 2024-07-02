@@ -33,7 +33,7 @@ go build
 ```bash
 curl -X POST \
   -H "Content-Type: application/json" \
-  -H "X-Access-Key: change-it-or-die \
+  -H "X-Access-Key: change-it-or-die" \
   -d '{"avatarJSON":"","size":512}' \
   http://0.0.0.0:8080/render
 ```
