@@ -31,7 +31,11 @@ go build
 
 6. test the server
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{"avatarJSON":"","size":512}' http://0.0.0.0:8080/render
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "X-Access-Key: change-it-or-die \
+  -d '{"avatarJSON":"","size":512}' \
+  http://0.0.0.0:8080/render
 ```
 
 Changing settings and stuff
