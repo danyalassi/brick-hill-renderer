@@ -8,7 +8,7 @@ Fnproject was a stupid idea so here we go
 
 2. initalize go module
 ```bash
-go mod init github.com/hawl1/brick-hill-renderer # you may want to change the link if you are gonna make changes
+go mod init github.com/danyalassi/brick-hill-renderer # you may want to change the link if you are gonna make changes
 ```
 
 3. get packages
